@@ -1,6 +1,7 @@
 package tdigest
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"math/rand"
@@ -11,7 +12,7 @@ import (
 func ExampleTDigest_Quantile() {
 	d := TDigest{MaxSize: 100}
 
-	for i := float64(1); i <= 100; i++ {
+	for i := float32(1); i <= 100; i++ {
 		d.Add(i, 1)
 	}
 
@@ -42,12 +43,12 @@ func ExampleTDigest_Quantile_empty() {
 
 func ExampleTDigest_Merge() {
 	d := TDigest{MaxSize: 100}
-	for i := float64(1); i <= 100; i++ {
+	for i := float32(1); i <= 100; i++ {
 		d.Add(i, 1)
 	}
 
 	b := TDigest{MaxSize: 100}
-	for i := float64(101); i <= 200; i++ {
+	for i := float32(101); i <= 200; i++ {
 		b.Add(i, 1)
 	}
 
@@ -62,12 +63,12 @@ func ExampleTDigest_Merge() {
 
 func ExampleTDigest_Merge_compress() {
 	d := TDigest{MaxSize: 100}
-	for i := float64(1); i <= 100; i++ {
+	for i := float32(1); i <= 100; i++ {
 		d.Add(i, 1)
 	}
 
 	b := TDigest{MaxSize: 100}
-	for i := float64(101); i <= 200; i++ {
+	for i := float32(101); i <= 200; i++ {
 		b.Add(i, 1)
 	}
 
@@ -83,7 +84,7 @@ func ExampleTDigest_Merge_compress() {
 
 func ExampleTDigest_Merge_large() {
 	d := TDigest{MaxSize: 100}
-	for i := float64(1); i <= 1000; i++ {
+	for i := float32(1); i <= 1000; i++ {
 		d.Add(i, 1)
 	}
 	d.Compress()
@@ -96,7 +97,7 @@ func ExampleTDigest_Merge_large() {
 
 func ExampleTDigest_Merge_negative() {
 	d := TDigest{MaxSize: 100}
-	for i := float64(1); i <= 100; i++ {
+	for i := float32(1); i <= 100; i++ {
 		d.Add(i, 1)
 		d.Add(-i, 1)
 	}
@@ -109,9 +110,9 @@ func ExampleTDigest_Merge_negative() {
 }
 
 func TestMergeLargeAsDigests(t *testing.T) {
-	values := make([]float64, 1000)
+	values := make([]float32, 1000)
 	for i := range values {
-		values[i] = float64(i + 1)
+		values[i] = float32(i + 1)
 	}
 	rand.Shuffle(len(values), func(i, j int) { values[i], values[j] = values[j], values[i] })
 
@@ -134,7 +135,7 @@ func TestMergeLargeAsDigests(t *testing.T) {
 	if d.Sum != 500500 {
 		t.Error(d.Sum)
 	}
-	if mean := d.Sum / float64(d.Count); mean != 500.5 {
+	if mean := d.Sum / float32(d.Count); mean != 500.5 {
 		t.Error(mean)
 	}
 	if d.Min != 1 {
@@ -144,7 +145,7 @@ func TestMergeLargeAsDigests(t *testing.T) {
 		t.Error(d.Max)
 	}
 
-	tests := map[float64]float64{
+	tests := map[float32]float32{
 		0.001: 1.5,
 		0.01:  10.5,
 		0.5:   500.25,
@@ -160,12 +161,12 @@ func TestMergeLargeAsDigests(t *testing.T) {
 
 func TestNegativeValuesMergeDigests(t *testing.T) {
 	d := TDigest{MaxSize: 100}
-	for i := float64(1); i <= 100; i++ {
+	for i := float32(1); i <= 100; i++ {
 		d.Add(i, 1)
 	}
 
 	d2 := TDigest{MaxSize: 100}
-	for i := float64(1); i <= 100; i++ {
+	for i := float32(1); i <= 100; i++ {
 		d2.Add(-i, 1)
 	}
 
@@ -178,7 +179,7 @@ func TestNegativeValuesMergeDigests(t *testing.T) {
 	if d.Sum != 0 {
 		t.Error(d.Sum)
 	}
-	if mean := d.Sum / float64(d.Count); mean != 0 {
+	if mean := d.Sum / float32(d.Count); mean != 0 {
 		t.Error(mean)
 	}
 	if d.Min != -100 {
@@ -188,7 +189,7 @@ func TestNegativeValuesMergeDigests(t *testing.T) {
 		t.Error(d.Max)
 	}
 
-	tests := map[float64]float64{
+	tests := map[float32]float32{
 		0.0:   -100,
 		0.001: -100,
 		0.01:  -98.5,
@@ -206,7 +207,7 @@ func TestNegativeValuesMergeDigests(t *testing.T) {
 func TestLargeOutlier(t *testing.T) {
 	d := TDigest{MaxSize: 100}
 	for i := range 20 {
-		v := float64(i)
+		v := float32(i)
 		if i == 0 {
 			v = 100_000.0
 		}
@@ -272,10 +273,10 @@ func TestDistribution(t *testing.T) {
 	}
 
 	for _, dist := range dists {
-		for _, q := range []float64{0.001, 0.01, 0.25, 0.5, 0.75, 0.99, 0.999} {
+		for _, q := range []float32{0.001, 0.01, 0.25, 0.5, 0.75, 0.99, 0.999} {
 			for _, merge := range []bool{true, false} {
 				t.Run("", func(t *testing.T) {
-					var reasonableError float64
+					var reasonableError float32
 					switch q {
 					case 0.001, 0.999:
 						reasonableError = 0.001
@@ -285,19 +286,19 @@ func TestDistribution(t *testing.T) {
 						reasonableError = 0.04
 					}
 
-					errors := make([]float64, kNumRandomRuns)
+					errors := make([]float32, kNumRandomRuns)
 
 					for i := range errors {
-						values := make([]float64, kNumSamples)
+						values := make([]float32, kNumSamples)
 						if dist.logarithmic {
 							for j := range values {
 								mode := rand.Intn(dist.modes)
-								values[j] = math.Log(rand.Float64()*math.E+1) + 100*float64(mode)
+								values[j] = float32(math.Log(rand.Float64()*math.E+1) + 100*float64(mode))
 							}
 						} else {
 							for j := range values {
 								mode := rand.Intn(dist.modes)
-								values[j] = rand.NormFloat64()*25 + 100*float64(mode+1)
+								values[j] = float32(rand.NormFloat64()*25 + 100*float64(mode+1))
 							}
 						}
 
@@ -327,26 +328,25 @@ func TestDistribution(t *testing.T) {
 							d.Compress()
 						}
 
-						sort.Float64s(values)
+						sort.Slice(values, func(i, j int) bool { return values[i] < values[j] })
 						est := d.Quantile(q)
-						idx := sort.SearchFloat64s(values, est)
-						actual := float64(idx) / float64(kNumSamples)
+						idx := sort.Search(len(values), func(i int) bool { return values[i] >= est })
+						actual := float32(idx) / float32(kNumSamples)
 						errors[i] = actual - q
 					}
 
-					mean := 0.0
+					var mean, variance float32
 					for _, e := range errors {
 						mean += e
 					}
-					mean /= float64(kNumRandomRuns)
+					mean /= float32(kNumRandomRuns)
 
-					variance := 0.0
 					for _, e := range errors {
 						variance += (e - mean) * (e - mean)
 					}
-					stddev := math.Sqrt(variance / float64(kNumRandomRuns-1))
+					stddev := math.Sqrt(float64(variance) / float64(kNumRandomRuns-1))
 
-					if stddev > reasonableError {
+					if stddev > float64(reasonableError) {
 						t.Error(stddev)
 					}
 				})
@@ -361,7 +361,7 @@ func BenchmarkAddCompress(b *testing.B) {
 	for _, size := range []int{10, 100, 1000, 10000} {
 		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
 			d := TDigest{MaxSize: size}
-			v := rand.Float64() * 1000
+			v := rand.Float32() * 1000
 
 			for b.Loop() {
 				d.Add(v, 1.0)
@@ -379,7 +379,7 @@ func BenchmarkMergeCompress(b *testing.B) {
 			d := TDigest{MaxSize: size}
 			other := TDigest{MaxSize: size}
 			for range size {
-				other.Add(rand.Float64()*1000, 1.0)
+				other.Add(rand.Float32()*1000, 1.0)
 			}
 			other.Compress()
 
@@ -393,11 +393,11 @@ func BenchmarkMergeCompress(b *testing.B) {
 
 func BenchmarkQuantile(b *testing.B) {
 	for _, size := range []int{10, 100, 1000, 10000} {
-		for _, q := range []float64{0.25, 0.5, 0.75, 0.99} {
+		for _, q := range []float32{0.25, 0.5, 0.75, 0.99} {
 			b.Run(fmt.Sprintf("size=%d/quantile=%.2f", size, q), func(b *testing.B) {
 				d := TDigest{MaxSize: size}
 				for range size {
-					d.Add(rand.Float64()*1000, 1.0)
+					d.Add(rand.Float32()*1000, 1.0)
 				}
 
 				for b.Loop() {
@@ -405,5 +405,182 @@ func BenchmarkQuantile(b *testing.B) {
 				}
 			})
 		}
+	}
+}
+
+func FuzzCentroid_AppendBinary(f *testing.F) {
+	f.Add([]byte{1, 2, 3}, float32(4), float32(5))
+
+	f.Fuzz(func(t *testing.T, out []byte, mean, weight float32) {
+		a := Centroid{Mean: mean, Weight: weight}
+
+		outBefore := make([]byte, len(out))
+		copy(outBefore, out)
+
+		out, err := a.AppendBinary(out)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if !bytes.Equal(outBefore, out[:len(outBefore)]) {
+			t.Error(outBefore, out)
+		}
+
+		var b Centroid
+		if err := (&b).UnmarshalBinary(out[len(outBefore):]); err != nil {
+			t.Error(err)
+		}
+
+		if a != b {
+			t.Error(a, b)
+		}
+	})
+}
+
+func FuzzCentroid_EncodeDecode(f *testing.F) {
+	f.Add(float32(4), float32(5))
+
+	f.Fuzz(func(t *testing.T, mean, weight float32) {
+		a := Centroid{Mean: mean, Weight: weight}
+
+		data, err := a.MarshalBinary()
+		if err != nil {
+			t.Error(err)
+		}
+
+		var b Centroid
+		if err := (&b).UnmarshalBinary(data); err != nil {
+			t.Error(err)
+		}
+
+		if a != b {
+			t.Error(a, b)
+		}
+	})
+}
+
+func FuzzTDigest_AppendBinary(f *testing.F) {
+	f.Add([]byte{1, 2, 3}, 10)
+
+	f.Fuzz(func(t *testing.T, out []byte, n int) {
+		if n < 0 {
+			n = -n
+		}
+		if n > 100_000 {
+			n = 100_000
+		}
+
+		d := TDigest{MaxSize: n}
+		for range n {
+			d.Add(rand.Float32()*1000, 1)
+		}
+		d.Compress()
+
+		outBefore := make([]byte, len(out))
+		copy(outBefore, out)
+
+		out, err := d.AppendBinary(out)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if !bytes.Equal(outBefore, out[:len(outBefore)]) {
+			t.Error(outBefore, out)
+		}
+
+		var dout TDigest
+		if err := (&dout).UnmarshalBinary(out[len(outBefore):]); err != nil {
+			t.Error(err)
+		}
+
+		if !d.Equal(dout) {
+			t.Error(d, dout)
+		}
+	})
+}
+
+func FuzzTDigest_EncodeDecode(f *testing.F) {
+	f.Add(10)
+
+	f.Fuzz(func(t *testing.T, n int) {
+		if n < 0 {
+			n = -n
+		}
+		if n > 100_000 {
+			n = 100_000
+		}
+
+		a := TDigest{MaxSize: n}
+		for range n {
+			a.Add(rand.Float32()*1000, 1)
+		}
+		a.Compress()
+
+		data, err := a.MarshalBinary()
+		if err != nil {
+			t.Error(err)
+		}
+
+		var b TDigest
+		if err := (&b).UnmarshalBinary(data); err != nil {
+			t.Error(err)
+		}
+
+		if !a.Equal(b) {
+			t.Error(a, b)
+		}
+	})
+}
+
+func BenchmarkTDigest_AppendBinary(b *testing.B) {
+	for _, size := range []int{10, 100, 1000, 10_000} {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			d := TDigest{MaxSize: size}
+			for range size {
+				d.Add(rand.Float32()*1000, 1)
+			}
+			d.Compress()
+
+			out := make([]byte, 0, 1000)
+
+			for b.Loop() {
+				d.AppendBinary(out)
+			}
+		})
+	}
+}
+
+func BenchmarkTDigest_MarshalBinary(b *testing.B) {
+	for _, size := range []int{10, 100, 1000, 10_000} {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			d := TDigest{MaxSize: size}
+			for range size {
+				d.Add(rand.Float32()*1000, 1)
+			}
+			d.Compress()
+
+			for b.Loop() {
+				d.MarshalBinary()
+			}
+		})
+	}
+}
+
+func BenchmarkTDigest_UnmarshalBinary(b *testing.B) {
+	for _, size := range []int{10, 100, 1000, 10_000} {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			d := TDigest{MaxSize: size}
+			for range size {
+				d.Add(rand.Float32()*1000, 1)
+			}
+			d.Compress()
+
+			var a TDigest
+			data, _ := d.MarshalBinary()
+
+			for b.Loop() {
+				(&a).UnmarshalBinary(data)
+			}
+		})
 	}
 }
