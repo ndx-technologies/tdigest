@@ -132,8 +132,14 @@ func (s *TDigest) Add(v, w float32) {
 		s.Min = v
 	}
 
-	s.Centroids = append(s.Centroids, Centroid{Mean: v, Weight: w})
-	sort.Slice(s.Centroids, func(i, j int) bool { return s.Centroids[i].Mean < s.Centroids[j].Mean })
+	pos := sort.Search(len(s.Centroids), func(i int) bool { return s.Centroids[i].Mean >= v })
+
+	s.Centroids = append(s.Centroids, Centroid{})
+	if pos < len(s.Centroids)-1 {
+		copy(s.Centroids[pos+1:], s.Centroids[pos:len(s.Centroids)-1])
+	}
+
+	s.Centroids[pos] = Centroid{Mean: v, Weight: w}
 }
 
 // Merge without compression
