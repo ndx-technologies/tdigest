@@ -87,6 +87,20 @@ func ExampleTDigest_Merge_compress() {
 	// 1 2.5 100.25 198.5 200
 }
 
+func ExampleTDigest_Merge_one() {
+	var d, b TDigest
+	b.Add(1, 1)
+
+	d.Merge(b)
+	d.Merge()
+	d.Compress(100)
+
+	fmt.Println(d.Count, d.Sum, d.Min, d.Max)
+	fmt.Println(d.Quantile(0.001), d.Quantile(0.01), d.Quantile(0.5), d.Quantile(0.99), d.Quantile(0.999))
+	// Output: 1 1 1 1
+	// 1 1 1 1 1
+}
+
 func ExampleTDigest_Merge_large() {
 	var d TDigest
 	for i := float32(1); i <= 1000; i++ {

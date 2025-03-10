@@ -144,15 +144,21 @@ func (s *TDigest) Add(v, w float32) {
 func (s *TDigest) Merge(digests ...TDigest) {
 	for _, d := range digests {
 		if d.Count > 0 {
-			s.Centroids = append(s.Centroids, d.Centroids...)
+			if s.Count == 0 {
+				s.Min = d.Min
+				s.Max = d.Max
+			} else {
+				if d.Min < s.Min {
+					s.Min = d.Min
+				}
+				if d.Max > s.Max {
+					s.Max = d.Max
+				}
+			}
+
 			s.Count += d.Count
 			s.Sum += d.Sum
-			if d.Min < s.Min {
-				s.Min = d.Min
-			}
-			if d.Max > s.Max {
-				s.Max = d.Max
-			}
+			s.Centroids = append(s.Centroids, d.Centroids...)
 		}
 	}
 
