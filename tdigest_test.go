@@ -36,9 +36,9 @@ func ExampleTDigest_Quantile_empty() {
 	var d TDigest
 
 	fmt.Println(d.Count, d.Sum, d.Min, d.Max)
-	fmt.Println(d.Quantile(0.001), d.Quantile(0.01), d.Quantile(0.5), d.Quantile(0.99), d.Quantile(0.999))
+	fmt.Println(d.Quantile(0.01), d.Quantile(0.5), d.Quantile(1))
 	// Output: 0 0 0 0
-	// 0 0 0 0 0
+	// 0 0 0
 }
 
 func ExampleTDigest_Merge() {
@@ -541,7 +541,7 @@ func BenchmarkTDigest_AppendBinary(b *testing.B) {
 			}
 			d.Compress()
 
-			out := make([]byte, 0, 1000)
+			out := make([]byte, 0, 24+8*size+100)
 
 			for b.Loop() {
 				d.AppendBinary(out)

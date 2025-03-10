@@ -44,7 +44,7 @@ type TDigest struct {
 	Sum       float32
 	Max       float32
 	Min       float32
-	MaxSize   int
+	MaxSize   int // max number of centroids
 }
 
 func (s TDigest) Equal(other TDigest) bool {
@@ -61,14 +61,12 @@ func (s TDigest) AppendBinary(b []byte) ([]byte, error) {
 		return b, errors.New("too large for uint32 based encoding")
 	}
 
-	// metadata header first
+	// fixed length header
 	b = byteOrder.AppendUint32(b, uint32(s.Count))
 	b = byteOrder.AppendUint32(b, math.Float32bits(s.Sum))
 	b = byteOrder.AppendUint32(b, math.Float32bits(s.Min))
 	b = byteOrder.AppendUint32(b, math.Float32bits(s.Max))
 	b = byteOrder.AppendUint32(b, uint32(s.MaxSize))
-
-	// centroids
 	b = byteOrder.AppendUint32(b, uint32(len(s.Centroids)))
 
 	var err error
@@ -88,7 +86,7 @@ func (s TDigest) MarshalBinary() ([]byte, error) {
 
 func (s *TDigest) UnmarshalBinary(data []byte) error {
 	if len(data) < 24 {
-		return errors.New("data too short")
+		return errors.New("invalid length")
 	}
 
 	s.Count = int(byteOrder.Uint32(data[:4]))
@@ -96,7 +94,6 @@ func (s *TDigest) UnmarshalBinary(data []byte) error {
 	s.Min = math.Float32frombits(byteOrder.Uint32(data[8:12]))
 	s.Max = math.Float32frombits(byteOrder.Uint32(data[12:16]))
 	s.MaxSize = int(byteOrder.Uint32(data[16:20]))
-
 	lenCentroids := int(byteOrder.Uint32(data[20:24]))
 
 	s.Centroids = make([]Centroid, lenCentroids)
@@ -106,7 +103,7 @@ func (s *TDigest) UnmarshalBinary(data []byte) error {
 
 	for i := range s.Centroids {
 		if offset+8 > len(data) {
-			return errors.New("invalid centroid data")
+			return errors.New("invalid centroid")
 		}
 
 		if err := (&s.Centroids[i]).UnmarshalBinary(data[offset : offset+8]); err != nil {
@@ -159,13 +156,13 @@ func (s *TDigest) Merge(digests ...TDigest) {
 }
 
 func (s *TDigest) Compress() {
-	if len(s.Centroids) == 0 {
+	if len(s.Centroids) == 0 || len(s.Centroids) <= s.MaxSize {
 		return
 	}
 
 	compressed := make([]Centroid, 0, s.MaxSize)
 
-	var kLimit float32 = 1.0
+	var kLimit float32 = 1
 	qLimitTimesCount := kToQ(kLimit, float32(s.MaxSize)) * float32(s.Count)
 
 	cur := s.Centroids[0]
@@ -249,8 +246,6 @@ func (s TDigest) Quantile(q float32) float32 {
 	return clamp(value, min, max)
 }
 
-type number interface{ float | integer }
-
 type float interface{ ~float32 | ~float64 }
 
 type integer interface {
@@ -261,16 +256,18 @@ func kToQ[T float](k, d T) T {
 	kDivD := k / d
 	if kDivD >= 0.5 {
 		base := 1 - kDivD
-		return 1 - 2*base*base
+		return 1 - (2 * base * base)
 	}
 	return 2 * kDivD * kDivD
 }
 
-func clamp[T number](v, lo, hi T) T {
-	if v > hi {
+func clamp[T float | integer](v, lo, hi T) T {
+	switch {
+	case v > hi:
 		return hi
-	} else if v < lo {
+	case v < lo:
 		return lo
+	default:
+		return v
 	}
-	return v
 }
