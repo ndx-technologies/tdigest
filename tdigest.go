@@ -46,6 +46,8 @@ type TDigest struct {
 	Min       float32
 }
 
+func (s TDigest) IsZero() bool { return s.Count == 0 }
+
 func (s TDigest) Equal(other TDigest) bool {
 	return s.Count == other.Count &&
 		s.Sum == other.Sum &&

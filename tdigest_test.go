@@ -9,6 +9,13 @@ import (
 	"testing"
 )
 
+func TestTDigest_IsZero(t *testing.T) {
+	var d TDigest
+	if !d.IsZero() {
+		t.Error("zero value")
+	}
+}
+
 func ExampleTDigest_Quantile() {
 	var d TDigest
 
