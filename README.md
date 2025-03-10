@@ -5,7 +5,7 @@ t-digest in Go
 - binary encoding
 - 300 LOC
 
-## Benchmarks
+Benchmarks
 
 ```bash
 $ go test -bench=. -benchmem .
@@ -53,7 +53,7 @@ PASS
 ok      github.com/ndx-technologies/tdigest     45.775s
 ```
 
-## References
+References
 
 - https://github.com/tdunning/t-digest
 - https://github.com/facebook/folly/blob/main/folly/stats/TDigest.cpp (no-unprocessed algorithm, inlined compression in creation, no add)
