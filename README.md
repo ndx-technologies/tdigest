@@ -59,5 +59,5 @@ References
 - https://github.com/facebook/folly/blob/main/folly/stats/TDigest.cpp (no-unprocessed algorithm, inlined compression in creation, no add)
 - https://github.com/MnO2/t-digest (same as folly)
 - https://github.com/derrickburns/tdigest (processed/unprocessed algorithm, add via new centroid)
-- https://github.com/influxdata/tdigest (not maintained, last update 4y ago, open issues, uses errors in API, processed/unprocessed algorithm, add via new centroid)
+- https://github.com/influxdata/tdigest (last update 4y ago, open issues, uses errors in API, processed/unprocessed algorithm, add via new centroid)
 - https://github.com/spenczar/tdigest (archived)
