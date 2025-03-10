@@ -13,44 +13,44 @@ goos: darwin
 goarch: arm64
 pkg: github.com/ndx-technologies/tdigest
 cpu: Apple M3 Max
-BenchmarkAddCompress/size=10-16                                  8362072               131.7 ns/op           295 B/op          3 allocs/op
-BenchmarkAddCompress/size=100-16                                 3880452               315.9 ns/op          1328 B/op          1 allocs/op
-BenchmarkAddCompress/size=1000-16                                5255559               256.2 ns/op           862 B/op          0 allocs/op
-BenchmarkAddCompress/size=10000-16                               2157460               480.1 ns/op           224 B/op          0 allocs/op
-BenchmarkMergeCompress/size=10-16                                  10000            807682 ns/op             465 B/op          2 allocs/op
-BenchmarkMergeCompress/size=100-16                                  4974          11731933 ns/op            4294 B/op          2 allocs/op
-BenchmarkMergeCompress/size=1000-16                                  408          13009113 ns/op           44409 B/op          2 allocs/op
-BenchmarkMergeCompress/size=10000-16                                 100          37038880 ns/op          410557 B/op          2 allocs/op
-BenchmarkQuantile/size=10/quantile=0.25-16                      296270143                4.056 ns/op           0 B/op          0 allocs/op
-BenchmarkQuantile/size=10/quantile=0.50-16                      246909472                4.865 ns/op           0 B/op          0 allocs/op
-BenchmarkQuantile/size=10/quantile=0.75-16                      296573799                4.048 ns/op           0 B/op          0 allocs/op
-BenchmarkQuantile/size=10/quantile=0.99-16                      384321291                3.120 ns/op           0 B/op          0 allocs/op
-BenchmarkQuantile/size=100/quantile=0.25-16                     65808562                18.09 ns/op            0 B/op          0 allocs/op
-BenchmarkQuantile/size=100/quantile=0.50-16                     28376620                42.43 ns/op            0 B/op          0 allocs/op
-BenchmarkQuantile/size=100/quantile=0.75-16                     100000000               11.93 ns/op            0 B/op          0 allocs/op
-BenchmarkQuantile/size=100/quantile=0.99-16                     373714771                3.209 ns/op           0 B/op          0 allocs/op
-BenchmarkQuantile/size=1000/quantile=0.25-16                     3401463               353.2 ns/op             0 B/op          0 allocs/op
-BenchmarkQuantile/size=1000/quantile=0.50-16                     1747731               686.4 ns/op             0 B/op          0 allocs/op
-BenchmarkQuantile/size=1000/quantile=0.75-16                     7929656               151.6 ns/op             0 B/op          0 allocs/op
-BenchmarkQuantile/size=1000/quantile=0.99-16                    195276451                6.136 ns/op           0 B/op          0 allocs/op
-BenchmarkQuantile/size=10000/quantile=0.25-16                     354295              3360 ns/op               0 B/op          0 allocs/op
-BenchmarkQuantile/size=10000/quantile=0.50-16                     176695              6763 ns/op               0 B/op          0 allocs/op
-BenchmarkQuantile/size=10000/quantile=0.75-16                     868041              1376 ns/op               0 B/op          0 allocs/op
-BenchmarkQuantile/size=10000/quantile=0.99-16                   26568044                45.23 ns/op            0 B/op          0 allocs/op
-BenchmarkTDigest_AppendBinary/size=10-16                        94844790                12.72 ns/op            0 B/op          0 allocs/op
-BenchmarkTDigest_AppendBinary/size=100-16                       13354563                88.84 ns/op            0 B/op          0 allocs/op
-BenchmarkTDigest_AppendBinary/size=1000-16                       1464591               818.9 ns/op             0 B/op          0 allocs/op
-BenchmarkTDigest_AppendBinary/size=10000-16                       147856              8138 ns/op               0 B/op          0 allocs/op
-BenchmarkTDigest_MarshalBinary/size=10-16                       41075317                28.73 ns/op          112 B/op          1 allocs/op
-BenchmarkTDigest_MarshalBinary/size=100-16                       7826073               155.6 ns/op           896 B/op          1 allocs/op
-BenchmarkTDigest_MarshalBinary/size=1000-16                       884018              1345 ns/op            8192 B/op          1 allocs/op
-BenchmarkTDigest_MarshalBinary/size=10000-16                       99562             11986 ns/op           81920 B/op          1 allocs/op
-BenchmarkTDigest_UnmarshalBinary/size=10-16                     48807934                24.27 ns/op           80 B/op          1 allocs/op
-BenchmarkTDigest_UnmarshalBinary/size=100-16                     7245828               166.3 ns/op           896 B/op          1 allocs/op
-BenchmarkTDigest_UnmarshalBinary/size=1000-16                     784621              1537 ns/op            8192 B/op          1 allocs/op
-BenchmarkTDigest_UnmarshalBinary/size=10000-16                     87409             13640 ns/op           81920 B/op          1 allocs/op
+BenchmarkAddCompress/size=10-16                                 10087381               117.0 ns/op           296 B/op          3 allocs/op
+BenchmarkAddCompress/size=100-16                                11190367               103.5 ns/op           429 B/op          0 allocs/op
+BenchmarkAddCompress/size=1000-16                                7451500               391.8 ns/op          1483 B/op          0 allocs/op
+BenchmarkAddCompress/size=10000-16                               1952947               693.2 ns/op           170 B/op          0 allocs/op
+BenchmarkMergeCompress/size=10-16                                3163314               354.4 ns/op           525 B/op          6 allocs/op
+BenchmarkMergeCompress/size=100-16                                281220              4415 ns/op            2800 B/op          6 allocs/op
+BenchmarkMergeCompress/size=1000-16                                20407             58278 ns/op           29055 B/op          6 allocs/op
+BenchmarkMergeCompress/size=10000-16                                1336            885533 ns/op          245756 B/op          6 allocs/op
+BenchmarkQuantile/size=10/quantile=0.25-16                      300870988                4.006 ns/op           0 B/op          0 allocs/op
+BenchmarkQuantile/size=10/quantile=0.50-16                      250298445                4.794 ns/op           0 B/op          0 allocs/op
+BenchmarkQuantile/size=10/quantile=0.75-16                      300945816                3.996 ns/op           0 B/op          0 allocs/op
+BenchmarkQuantile/size=10/quantile=0.99-16                      399924069                3.000 ns/op           0 B/op          0 allocs/op
+BenchmarkQuantile/size=100/quantile=0.25-16                     66874720                17.17 ns/op            0 B/op          0 allocs/op
+BenchmarkQuantile/size=100/quantile=0.50-16                     30142264                39.79 ns/op            0 B/op          0 allocs/op
+BenchmarkQuantile/size=100/quantile=0.75-16                     100000000               11.65 ns/op            0 B/op          0 allocs/op
+BenchmarkQuantile/size=100/quantile=0.99-16                     387504800                3.090 ns/op           0 B/op          0 allocs/op
+BenchmarkQuantile/size=1000/quantile=0.25-16                     3711162               325.4 ns/op             0 B/op          0 allocs/op
+BenchmarkQuantile/size=1000/quantile=0.50-16                     1898356               639.2 ns/op             0 B/op          0 allocs/op
+BenchmarkQuantile/size=1000/quantile=0.75-16                     8525449               142.8 ns/op             0 B/op          0 allocs/op
+BenchmarkQuantile/size=1000/quantile=0.99-16                    196872932                6.033 ns/op           0 B/op          0 allocs/op
+BenchmarkQuantile/size=10000/quantile=0.25-16                     385173              3136 ns/op               0 B/op          0 allocs/op
+BenchmarkQuantile/size=10000/quantile=0.50-16                     193035              6225 ns/op               0 B/op          0 allocs/op
+BenchmarkQuantile/size=10000/quantile=0.75-16                     921289              1263 ns/op               0 B/op          0 allocs/op
+BenchmarkQuantile/size=10000/quantile=0.99-16                   28343498                43.12 ns/op            0 B/op          0 allocs/op
+BenchmarkTDigest_AppendBinary/size=10-16                        96190780                12.43 ns/op            0 B/op          0 allocs/op
+BenchmarkTDigest_AppendBinary/size=100-16                       13933243                86.83 ns/op            0 B/op          0 allocs/op
+BenchmarkTDigest_AppendBinary/size=1000-16                       1480885               809.2 ns/op             0 B/op          0 allocs/op
+BenchmarkTDigest_AppendBinary/size=10000-16                       150110              8026 ns/op               0 B/op          0 allocs/op
+BenchmarkTDigest_MarshalBinary/size=10-16                       42346652                27.51 ns/op          112 B/op          1 allocs/op
+BenchmarkTDigest_MarshalBinary/size=100-16                       8059311               149.5 ns/op           896 B/op          1 allocs/op
+BenchmarkTDigest_MarshalBinary/size=1000-16                       916420              1254 ns/op            8192 B/op          1 allocs/op
+BenchmarkTDigest_MarshalBinary/size=10000-16                      103988             11453 ns/op           81920 B/op          1 allocs/op
+BenchmarkTDigest_UnmarshalBinary/size=10-16                     51248196                23.28 ns/op           80 B/op          1 allocs/op
+BenchmarkTDigest_UnmarshalBinary/size=100-16                     7656922               156.5 ns/op           896 B/op          1 allocs/op
+BenchmarkTDigest_UnmarshalBinary/size=1000-16                     864814              1425 ns/op            8192 B/op          1 allocs/op
+BenchmarkTDigest_UnmarshalBinary/size=10000-16                     93374             12965 ns/op           81920 B/op          1 allocs/op
 PASS
-ok      github.com/ndx-technologies/tdigest     114.440s
+ok      github.com/ndx-technologies/tdigest     45.775s
 ```
 
 ## References

@@ -44,7 +44,6 @@ type TDigest struct {
 	Sum       float32
 	Max       float32
 	Min       float32
-	MaxSize   int // max number of centroids
 }
 
 func (s TDigest) Equal(other TDigest) bool {
@@ -52,12 +51,11 @@ func (s TDigest) Equal(other TDigest) bool {
 		s.Sum == other.Sum &&
 		s.Min == other.Min &&
 		s.Max == other.Max &&
-		s.MaxSize == other.MaxSize &&
 		slices.Equal(s.Centroids, other.Centroids)
 }
 
 func (s TDigest) AppendBinary(b []byte) ([]byte, error) {
-	if s.Count > math.MaxUint32 || s.MaxSize > math.MaxUint32 || len(s.Centroids) > math.MaxUint32 {
+	if s.Count > math.MaxUint32 || len(s.Centroids) > math.MaxUint32 {
 		return b, errors.New("too large for uint32 based encoding")
 	}
 
@@ -66,7 +64,6 @@ func (s TDigest) AppendBinary(b []byte) ([]byte, error) {
 	b = byteOrder.AppendUint32(b, math.Float32bits(s.Sum))
 	b = byteOrder.AppendUint32(b, math.Float32bits(s.Min))
 	b = byteOrder.AppendUint32(b, math.Float32bits(s.Max))
-	b = byteOrder.AppendUint32(b, uint32(s.MaxSize))
 	b = byteOrder.AppendUint32(b, uint32(len(s.Centroids)))
 
 	var err error
@@ -85,7 +82,7 @@ func (s TDigest) MarshalBinary() ([]byte, error) {
 }
 
 func (s *TDigest) UnmarshalBinary(data []byte) error {
-	if len(data) < 24 {
+	if len(data) < 20 {
 		return errors.New("invalid length")
 	}
 
@@ -93,12 +90,11 @@ func (s *TDigest) UnmarshalBinary(data []byte) error {
 	s.Sum = math.Float32frombits(byteOrder.Uint32(data[4:8]))
 	s.Min = math.Float32frombits(byteOrder.Uint32(data[8:12]))
 	s.Max = math.Float32frombits(byteOrder.Uint32(data[12:16]))
-	s.MaxSize = int(byteOrder.Uint32(data[16:20]))
-	lenCentroids := int(byteOrder.Uint32(data[20:24]))
+	lenCentroids := int(byteOrder.Uint32(data[16:20]))
 
 	s.Centroids = make([]Centroid, lenCentroids)
 
-	data = data[24:]
+	data = data[20:]
 	offset := 0
 
 	for i := range s.Centroids {
@@ -161,15 +157,15 @@ func (s *TDigest) Merge(digests ...TDigest) {
 	sort.Slice(s.Centroids, func(i, j int) bool { return s.Centroids[i].Mean < s.Centroids[j].Mean })
 }
 
-func (s *TDigest) Compress() {
-	if len(s.Centroids) == 0 || len(s.Centroids) <= s.MaxSize {
+func (s *TDigest) Compress(maxCentroids int) {
+	if len(s.Centroids) == 0 || len(s.Centroids) <= maxCentroids {
 		return
 	}
 
-	compressed := make([]Centroid, 0, s.MaxSize)
+	compressed := make([]Centroid, 0, maxCentroids)
 
 	var kLimit float32 = 1
-	qLimitTimesCount := kToQ(kLimit, float32(s.MaxSize)) * float32(s.Count)
+	qLimitTimesCount := kToQ(kLimit, float32(maxCentroids)) * float32(s.Count)
 
 	cur := s.Centroids[0]
 	weightSoFar := cur.Weight
@@ -185,7 +181,7 @@ func (s *TDigest) Compress() {
 			sumsToMerge = 0
 			weightsToMerge = 0
 			compressed = append(compressed, cur)
-			qLimitTimesCount = kToQ(kLimit, float32(s.MaxSize)) * float32(s.Count)
+			qLimitTimesCount = kToQ(kLimit, float32(maxCentroids)) * float32(s.Count)
 			kLimit++
 			cur = next
 		}
