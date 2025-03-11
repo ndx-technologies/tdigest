@@ -1,4 +1,4 @@
-t-digest in Go
+Go t-digest
 
 - 100% test coverage
 - fuzz tests
