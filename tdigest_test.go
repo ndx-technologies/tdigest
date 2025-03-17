@@ -20,7 +20,7 @@ func ExampleTDigest_Quantile() {
 	var d TDigest
 
 	for i := float32(1); i <= 100; i++ {
-		d.Add(i, 1)
+		d.Insert(i, 1)
 	}
 
 	d.Compress(100)
@@ -33,7 +33,7 @@ func ExampleTDigest_Quantile() {
 
 func ExampleTDigest_Quantile_one() {
 	var d TDigest
-	d.Add(1, 1)
+	d.Insert(1, 1)
 
 	fmt.Println(d.Count, d.Sum, d.Min, d.Max)
 	fmt.Println(d.Quantile(0.001), d.Quantile(0.01), d.Quantile(0.5), d.Quantile(0.99), d.Quantile(0.999))
@@ -50,13 +50,31 @@ func ExampleTDigest_Quantile_empty() {
 	// 0 0 0
 }
 
+func ExampleTDigest_Mul() {
+	var d TDigest
+
+	for i := float32(1); i <= 100; i++ {
+		d.Insert(i, 1)
+	}
+
+	d.Compress(100)
+
+	fmt.Println(d.Count, d.Sum, d.Min, d.Max, d.Quantile(0.1), d.Quantile(0.9))
+
+	d.Mul(5.5)
+
+	fmt.Println(d.Count, d.Sum, d.Min, d.Max, d.Quantile(0.1), d.Quantile(0.9))
+	// Output: 100 5050 1 100 10.5 90.5
+	// 100 27775 5.5 550 57.75 497.75
+}
+
 func ExampleTDigest_Merge() {
 	var d, b TDigest
 	for i := float32(1); i <= 100; i++ {
-		d.Add(i, 1)
+		d.Insert(i, 1)
 	}
 	for i := float32(101); i <= 200; i++ {
-		b.Add(i, 1)
+		b.Insert(i, 1)
 	}
 
 	d.Merge(b)
@@ -71,10 +89,10 @@ func ExampleTDigest_Merge() {
 func ExampleTDigest_Merge_compress() {
 	var d, b TDigest
 	for i := float32(1); i <= 100; i++ {
-		d.Add(i, 1)
+		d.Insert(i, 1)
 	}
 	for i := float32(101); i <= 200; i++ {
-		b.Add(i, 1)
+		b.Insert(i, 1)
 	}
 
 	d.Merge(b)
@@ -89,7 +107,7 @@ func ExampleTDigest_Merge_compress() {
 
 func ExampleTDigest_Merge_one() {
 	var d, b TDigest
-	b.Add(1, 1)
+	b.Insert(1, 1)
 
 	d.Merge(b)
 	d.Merge()
@@ -104,7 +122,7 @@ func ExampleTDigest_Merge_one() {
 func ExampleTDigest_Merge_large() {
 	var d TDigest
 	for i := float32(1); i <= 1000; i++ {
-		d.Add(i, 1)
+		d.Insert(i, 1)
 	}
 	d.Compress(100)
 
@@ -117,8 +135,8 @@ func ExampleTDigest_Merge_large() {
 func ExampleTDigest_Merge_negative() {
 	var d TDigest
 	for i := float32(1); i <= 100; i++ {
-		d.Add(i, 1)
-		d.Add(-i, 1)
+		d.Insert(i, 1)
+		d.Insert(-i, 1)
 	}
 	d.Compress(100)
 
@@ -139,7 +157,7 @@ func TestMergeLargeAsDigests(t *testing.T) {
 	for i := range 10 {
 		var d TDigest
 		for j := i * 100; j < (i+1)*100; j++ {
-			d.Add(values[j], 1)
+			d.Insert(values[j], 1)
 		}
 		digests = append(digests, d)
 	}
@@ -181,10 +199,10 @@ func TestMergeLargeAsDigests(t *testing.T) {
 func TestNegativeValuesMergeDigests(t *testing.T) {
 	var d, d2 TDigest
 	for i := float32(1); i <= 100; i++ {
-		d.Add(i, 1)
+		d.Insert(i, 1)
 	}
 	for i := float32(1); i <= 100; i++ {
-		d2.Add(-i, 1)
+		d2.Insert(-i, 1)
 	}
 
 	d.Merge(d2)
@@ -228,7 +246,7 @@ func TestLargeOutlier(t *testing.T) {
 		if i == 0 {
 			v = 100_000.0
 		}
-		d.Add(v, 1)
+		d.Insert(v, 1)
 	}
 	d.Compress(100)
 
@@ -242,10 +260,10 @@ func TestFloatingPointSorted(t *testing.T) {
 
 	var d1, d2, d3, md1, md2 TDigest
 	for range 100 {
-		d1.Add(v, 1)
+		d1.Insert(v, 1)
 	}
 	for range 100 {
-		d1.Add(v, 1)
+		d1.Insert(v, 1)
 	}
 
 	md1.Merge(d1)
@@ -253,7 +271,7 @@ func TestFloatingPointSorted(t *testing.T) {
 	md1.Compress(100)
 
 	for range 100 {
-		d3.Add(v, 1)
+		d3.Insert(v, 1)
 	}
 
 	md2.Merge(md1)
@@ -321,7 +339,7 @@ func TestDistribution(t *testing.T) {
 
 							for j := range digests {
 								for i := j * 1000; i < (j+1)*1000; i++ {
-									digests[j].Add(values[i], 1)
+									digests[j].Insert(values[i], 1)
 								}
 								digests[j].Compress(100)
 							}
@@ -333,7 +351,7 @@ func TestDistribution(t *testing.T) {
 
 							for j := 0; j < kNumSamples/1000; j++ {
 								for i := j * 1000; i < (j+1)*1000; i++ {
-									d.Add(values[i], 1)
+									d.Insert(values[i], 1)
 								}
 							}
 
@@ -375,7 +393,7 @@ func BenchmarkAddCompress(b *testing.B) {
 			v := rand.Float32() * 1000
 
 			for b.Loop() {
-				d.Add(v, 1.0)
+				d.Insert(v, 1.0)
 				if len(d.Centroids) > size {
 					d.Compress(size)
 				}
@@ -389,7 +407,7 @@ func BenchmarkMergeCompress(b *testing.B) {
 		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
 			var d, other TDigest
 			for range size {
-				other.Add(rand.Float32()*1000, 1.0)
+				other.Insert(rand.Float32()*1000, 1.0)
 			}
 			other.Compress(size)
 
@@ -407,7 +425,7 @@ func BenchmarkQuantile(b *testing.B) {
 			b.Run(fmt.Sprintf("size=%d/quantile=%.2f", size, q), func(b *testing.B) {
 				var d TDigest
 				for range size {
-					d.Add(rand.Float32()*1000, 1.0)
+					d.Insert(rand.Float32()*1000, 1.0)
 				}
 				d.Compress(size)
 
@@ -483,7 +501,7 @@ func FuzzTDigest_AppendBinary(f *testing.F) {
 
 		var d TDigest
 		for range n {
-			d.Add(rand.Float32()*1000, 1)
+			d.Insert(rand.Float32()*1000, 1)
 		}
 		d.Compress(n)
 
@@ -523,7 +541,7 @@ func FuzzTDigest_EncodeDecode(f *testing.F) {
 
 		var a TDigest
 		for range n {
-			a.Add(rand.Float32()*1000, 1)
+			a.Insert(rand.Float32()*1000, 1)
 		}
 		a.Compress(n)
 
@@ -548,7 +566,7 @@ func BenchmarkTDigest_AppendBinary(b *testing.B) {
 		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
 			var d TDigest
 			for range size {
-				d.Add(rand.Float32()*1000, 1)
+				d.Insert(rand.Float32()*1000, 1)
 			}
 			d.Compress(size)
 
@@ -566,7 +584,7 @@ func BenchmarkTDigest_MarshalBinary(b *testing.B) {
 		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
 			var d TDigest
 			for range size {
-				d.Add(rand.Float32()*1000, 1)
+				d.Insert(rand.Float32()*1000, 1)
 			}
 			d.Compress(size)
 
@@ -582,7 +600,7 @@ func BenchmarkTDigest_UnmarshalBinary(b *testing.B) {
 		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
 			var d TDigest
 			for range size {
-				d.Add(rand.Float32()*1000, 1)
+				d.Insert(rand.Float32()*1000, 1)
 			}
 			d.Compress(size)
 

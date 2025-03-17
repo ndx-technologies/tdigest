@@ -114,8 +114,8 @@ func (s *TDigest) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-// Add value without compression
-func (s *TDigest) Add(v, w float32) {
+// Insert value without compression
+func (s *TDigest) Insert(v, w float32) {
 	if s.Count == 0 {
 		s.Min = v
 		s.Max = v
@@ -254,6 +254,15 @@ func (s TDigest) Quantile(q float32) float32 {
 
 	value := s.Centroids[pos].Mean + ((rank-t)/s.Centroids[pos].Weight-0.5)*delta
 	return clamp(value, min, max)
+}
+
+func (s *TDigest) Mul(v float32) {
+	s.Sum *= v
+	s.Min *= v
+	s.Max *= v
+	for i := range s.Centroids {
+		s.Centroids[i].Mean *= v
+	}
 }
 
 type float interface{ ~float32 | ~float64 }
