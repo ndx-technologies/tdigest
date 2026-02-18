@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"slices"
 	"sort"
 	"testing"
 )
@@ -349,7 +350,7 @@ func TestDistribution(t *testing.T) {
 						} else {
 							var d TDigest
 
-							for j := 0; j < kNumSamples/1000; j++ {
+							for j := range kNumSamples / 1000 {
 								for i := j * 1000; i < (j+1)*1000; i++ {
 									d.Insert(values[i], 1)
 								}
@@ -358,7 +359,7 @@ func TestDistribution(t *testing.T) {
 							d.Compress(100)
 						}
 
-						sort.Slice(values, func(i, j int) bool { return values[i] < values[j] })
+						slices.Sort(values)
 						est := d.Quantile(q)
 						idx := sort.Search(len(values), func(i int) bool { return values[i] >= est })
 						actual := float32(idx) / float32(kNumSamples)
