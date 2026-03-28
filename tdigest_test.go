@@ -1,6 +1,7 @@
 package tdigest
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"math/rand"
@@ -10,14 +11,14 @@ import (
 )
 
 func TestTDigest_IsZero(t *testing.T) {
-	var d TDigest[float32]
+	var d TDigest
 	if !d.IsZero() {
 		t.Error("zero value")
 	}
 }
 
 func ExampleTDigest_Quantile() {
-	var d TDigest[float32]
+	var d TDigest
 
 	for i := float32(1); i <= 100; i++ {
 		d.Insert(i, 1)
@@ -32,7 +33,7 @@ func ExampleTDigest_Quantile() {
 }
 
 func ExampleTDigest_Quantile_one() {
-	var d TDigest[float32]
+	var d TDigest
 	d.Insert(1, 1)
 
 	fmt.Println(d.Count, d.Sum, d.Min, d.Max)
@@ -42,7 +43,7 @@ func ExampleTDigest_Quantile_one() {
 }
 
 func ExampleTDigest_Quantile_empty() {
-	var d TDigest[float32]
+	var d TDigest
 
 	fmt.Println(d.Count, d.Sum, d.Min, d.Max)
 	fmt.Println(d.Quantile(0.01), d.Quantile(0.5), d.Quantile(1))
@@ -51,7 +52,7 @@ func ExampleTDigest_Quantile_empty() {
 }
 
 func ExampleTDigest_Mul() {
-	var d TDigest[float32]
+	var d TDigest
 
 	for i := float32(1); i <= 100; i++ {
 		d.Insert(i, 1)
@@ -69,7 +70,7 @@ func ExampleTDigest_Mul() {
 }
 
 func ExampleTDigest_Merge() {
-	var d, b TDigest[float32]
+	var d, b TDigest
 	for i := float32(1); i <= 100; i++ {
 		d.Insert(i, 1)
 	}
@@ -87,7 +88,7 @@ func ExampleTDigest_Merge() {
 }
 
 func ExampleTDigest_Merge_compress() {
-	var d, b TDigest[float32]
+	var d, b TDigest
 	for i := float32(1); i <= 100; i++ {
 		d.Insert(i, 1)
 	}
@@ -106,7 +107,7 @@ func ExampleTDigest_Merge_compress() {
 }
 
 func ExampleTDigest_Merge_one() {
-	var d, b TDigest[float32]
+	var d, b TDigest
 	b.Insert(1, 1)
 
 	d.Merge(b)
@@ -120,7 +121,7 @@ func ExampleTDigest_Merge_one() {
 }
 
 func ExampleTDigest_Merge_large() {
-	var d TDigest[float32]
+	var d TDigest
 	for i := float32(1); i <= 1000; i++ {
 		d.Insert(i, 1)
 	}
@@ -133,7 +134,7 @@ func ExampleTDigest_Merge_large() {
 }
 
 func ExampleTDigest_Merge_negative() {
-	var d TDigest[float32]
+	var d TDigest
 	for i := float32(1); i <= 100; i++ {
 		d.Insert(i, 1)
 		d.Insert(-i, 1)
@@ -153,9 +154,9 @@ func TestMergeLargeAsDigests(t *testing.T) {
 	}
 	rand.Shuffle(len(values), func(i, j int) { values[i], values[j] = values[j], values[i] })
 
-	digests := make([]TDigest[float32], 0, 10)
+	digests := make([]TDigest, 0, 10)
 	for i := range 10 {
-		var d TDigest[float32]
+		var d TDigest
 		for j := i * 100; j < (i+1)*100; j++ {
 			d.Insert(values[j], 1)
 		}
@@ -197,7 +198,7 @@ func TestMergeLargeAsDigests(t *testing.T) {
 }
 
 func TestNegativeValuesMergeDigests(t *testing.T) {
-	var d, d2 TDigest[float32]
+	var d, d2 TDigest
 	for i := float32(1); i <= 100; i++ {
 		d.Insert(i, 1)
 	}
@@ -240,7 +241,7 @@ func TestNegativeValuesMergeDigests(t *testing.T) {
 }
 
 func TestLargeOutlier(t *testing.T) {
-	var d TDigest[float32]
+	var d TDigest
 	for i := range 20 {
 		v := float32(i)
 		if i == 0 {
@@ -258,7 +259,7 @@ func TestLargeOutlier(t *testing.T) {
 func TestFloatingPointSorted(t *testing.T) {
 	const v = 1.4
 
-	var d1, d2, d3, md1, md2 TDigest[float32]
+	var d1, d2, d3, md1, md2 TDigest
 	for range 100 {
 		d1.Insert(v, 1)
 	}
@@ -288,6 +289,7 @@ func TestFloatingPointSorted(t *testing.T) {
 const (
 	kNumSamples    = 3000
 	kNumRandomRuns = 10
+	kSeed          = 0
 )
 
 func TestDistribution(t *testing.T) {
@@ -331,10 +333,10 @@ func TestDistribution(t *testing.T) {
 							}
 						}
 
-						var d TDigest[float32]
+						var d TDigest
 
 						if merge {
-							digests := make([]TDigest[float32], kNumSamples/1000)
+							digests := make([]TDigest, kNumSamples/1000)
 
 							for j := range digests {
 								for i := j * 1000; i < (j+1)*1000; i++ {
@@ -346,7 +348,7 @@ func TestDistribution(t *testing.T) {
 							d = digests[0]
 							d.Merge(digests[1:]...)
 						} else {
-							var d TDigest[float32]
+							var d TDigest
 
 							for j := range kNumSamples / 1000 {
 								for i := j * 1000; i < (j+1)*1000; i++ {
@@ -388,7 +390,7 @@ func BenchmarkNoop______________________________________(b *testing.B) {}
 func BenchmarkAddCompress(b *testing.B) {
 	for _, size := range []int{10, 100, 1000, 10000} {
 		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
-			var d TDigest[float32]
+			var d TDigest
 			v := rand.Float32() * 1000
 
 			for b.Loop() {
@@ -404,7 +406,7 @@ func BenchmarkAddCompress(b *testing.B) {
 func BenchmarkMergeCompress(b *testing.B) {
 	for _, size := range []int{10, 100, 1000, 10000} {
 		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
-			var d, other TDigest[float32]
+			var d, other TDigest
 			for range size {
 				other.Insert(rand.Float32()*1000, 1.0)
 			}
@@ -422,7 +424,7 @@ func BenchmarkQuantile(b *testing.B) {
 	for _, size := range []int{10, 100, 1000, 10000} {
 		for _, q := range []float32{0.25, 0.5, 0.75, 0.99} {
 			b.Run(fmt.Sprintf("size=%d/quantile=%.2f", size, q), func(b *testing.B) {
-				var d TDigest[float32]
+				var d TDigest
 				for range size {
 					d.Insert(rand.Float32()*1000, 1.0)
 				}
@@ -433,5 +435,182 @@ func BenchmarkQuantile(b *testing.B) {
 				}
 			})
 		}
+	}
+}
+
+func FuzzCentroid_AppendBinary(f *testing.F) {
+	f.Add([]byte{1, 2, 3}, float32(4), float32(5))
+
+	f.Fuzz(func(t *testing.T, out []byte, mean, weight float32) {
+		a := Centroid{Mean: mean, Weight: weight}
+
+		outBefore := make([]byte, len(out))
+		copy(outBefore, out)
+
+		out, err := a.AppendBinary(out)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if !bytes.Equal(outBefore, out[:len(outBefore)]) {
+			t.Error(outBefore, out)
+		}
+
+		var b Centroid
+		if err := (&b).UnmarshalBinary(out[len(outBefore):]); err != nil {
+			t.Error(err)
+		}
+
+		if a != b {
+			t.Error(a, b)
+		}
+	})
+}
+
+func FuzzCentroid_EncodeDecode(f *testing.F) {
+	f.Add(float32(4), float32(5))
+
+	f.Fuzz(func(t *testing.T, mean, weight float32) {
+		a := Centroid{Mean: mean, Weight: weight}
+
+		data, err := a.MarshalBinary()
+		if err != nil {
+			t.Error(err)
+		}
+
+		var b Centroid
+		if err := (&b).UnmarshalBinary(data); err != nil {
+			t.Error(err)
+		}
+
+		if a != b {
+			t.Error(a, b)
+		}
+	})
+}
+
+func FuzzTDigest_AppendBinary(f *testing.F) {
+	f.Add([]byte{1, 2, 3}, 10)
+
+	f.Fuzz(func(t *testing.T, out []byte, n int) {
+		if n < 0 {
+			n = -n
+		}
+		if n > 100_000 {
+			n = 100_000
+		}
+
+		var d TDigest
+		for range n {
+			d.Insert(rand.Float32()*1000, 1)
+		}
+		d.Compress(n)
+
+		outBefore := make([]byte, len(out))
+		copy(outBefore, out)
+
+		out, err := d.AppendBinary(out)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if !bytes.Equal(outBefore, out[:len(outBefore)]) {
+			t.Error(outBefore, out)
+		}
+
+		var dout TDigest
+		if err := (&dout).UnmarshalBinary(out[len(outBefore):]); err != nil {
+			t.Error(err)
+		}
+
+		if !d.Equal(dout) {
+			t.Error(d, dout)
+		}
+	})
+}
+
+func FuzzTDigest_EncodeDecode(f *testing.F) {
+	f.Add(10)
+
+	f.Fuzz(func(t *testing.T, n int) {
+		if n < 0 {
+			n = -n
+		}
+		if n > 100_000 {
+			n = 100_000
+		}
+
+		var a TDigest
+		for range n {
+			a.Insert(rand.Float32()*1000, 1)
+		}
+		a.Compress(n)
+
+		data, err := a.MarshalBinary()
+		if err != nil {
+			t.Error(err)
+		}
+
+		var b TDigest
+		if err := (&b).UnmarshalBinary(data); err != nil {
+			t.Error(err)
+		}
+
+		if !a.Equal(b) {
+			t.Error(a, b)
+		}
+	})
+}
+
+func BenchmarkTDigest_AppendBinary(b *testing.B) {
+	for _, size := range []int{10, 100, 1000, 10_000} {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			var d TDigest
+			for range size {
+				d.Insert(rand.Float32()*1000, 1)
+			}
+			d.Compress(size)
+
+			out := make([]byte, 0, 20+8*size+100)
+
+			for b.Loop() {
+				d.AppendBinary(out)
+			}
+		})
+	}
+}
+
+func BenchmarkTDigest_MarshalBinary(b *testing.B) {
+	for _, size := range []int{10, 100, 1000, 10_000} {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			var d TDigest
+			for range size {
+				d.Insert(rand.Float32()*1000, 1)
+			}
+			d.Compress(size)
+
+			for b.Loop() {
+				d.MarshalBinary()
+			}
+		})
+	}
+}
+
+func BenchmarkTDigest_UnmarshalBinary(b *testing.B) {
+	for _, size := range []int{10, 100, 1000, 10_000} {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			var d TDigest
+			for range size {
+				d.Insert(rand.Float32()*1000, 1)
+			}
+			d.Compress(size)
+
+			var a TDigest
+			data, _ := d.MarshalBinary()
+
+			for b.Loop() {
+				(&a).UnmarshalBinary(data)
+			}
+		})
 	}
 }
