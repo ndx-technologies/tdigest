@@ -81,7 +81,7 @@ func (s *TDigest[T]) Compress(maxCentroids int) {
 
 	for _, next := range s.Centroids[1:] {
 		weightSoFar += next.Weight
-		if weightSoFar <= T(qLimitTimesCount) {
+		if weightSoFar <= qLimitTimesCount {
 			sumsToMerge += next.Mean * next.Weight
 			weightsToMerge += next.Weight
 		} else {
