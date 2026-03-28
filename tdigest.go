@@ -10,10 +10,7 @@ import (
 
 var byteOrder = binary.LittleEndian
 
-type Centroid struct {
-	Mean   float32
-	Weight float32
-}
+type Centroid struct{ Mean, Weight float32 }
 
 func (s Centroid) AppendBinary(b []byte) ([]byte, error) {
 	b = byteOrder.AppendUint32(b, math.Float32bits(s.Mean))
@@ -39,11 +36,9 @@ func (c *Centroid) Add(sum, weight float32) {
 }
 
 type TDigest struct {
-	Centroids []Centroid
-	Count     int
-	Sum       float32
-	Max       float32
-	Min       float32
+	Count         int
+	Sum, Min, Max float32
+	Centroids     []Centroid
 }
 
 func (s TDigest) IsZero() bool { return s.Count == 0 }
@@ -123,12 +118,8 @@ func (s *TDigest) Insert(v, w float32) {
 
 	s.Sum += v
 	s.Count++
-	if v > s.Max {
-		s.Max = v
-	}
-	if v < s.Min {
-		s.Min = v
-	}
+	s.Min = min(s.Min, v)
+	s.Max = max(s.Max, v)
 
 	pos := sort.Search(len(s.Centroids), func(i int) bool { return s.Centroids[i].Mean >= v })
 
