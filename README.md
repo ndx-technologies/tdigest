@@ -5,6 +5,8 @@ Go t-digest
 - binary encoding
 - 300 LOC
 
+[![codecov](https://codecov.io/github/ndx-technologies/tdigest/graph/badge.svg?token=P7YNV35JYV)](https://codecov.io/github/ndx-technologies/tdigest)
+
 Benchmarks
 
 ```bash
